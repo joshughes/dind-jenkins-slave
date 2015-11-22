@@ -19,4 +19,4 @@ EXPOSE 22
 
 COPY jenkins-slave-startup.sh /
 
-CMD ["/jenkins-slave-startup.sh"]
+ENTRYPOINT ["/jenkins-slave-startup.sh"]
