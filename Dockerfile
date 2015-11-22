@@ -6,38 +6,17 @@
 # Following the best practices outlined in:
 #   http://jonathan.bergknoff.com/journal/building-good-docker-images
 
-FROM evarga/jenkins-slave
+FROM docker:1.9.1-dind
 
-ENV DEBIAN_FRONTEND noninteractive
+RUN apk update && apk add openssh openjdk7-jre
+RUN mkdir -p /var/run/sshd &&\
+    adduser -s /bin/ash -D jenkins &&\
+    echo "jenkins:jenkins" | chpasswd &&\
+    ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa &&\
+    echo "export DOCKER_HOST=tcp://localhost:2375" >> /etc/profile
 
-# Adapted from: https://registry.hub.docker.com/u/jpetazzo/dind/dockerfile/
-# Let's start with some basic stuff.
-RUN apt-get update -qq && apt-get install -qqy \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    lxc \
-    iptables && \
-    rm -rf /var/lib/apt/lists/*
+EXPOSE 22
 
-RUN echo deb https://apt.dockerproject.org/repo ubuntu-trusty main > /etc/apt/sources.list.d/docker.list && \
-    apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D
+COPY jenkins-slave-startup.sh /
 
-ENV DOCKER_VERSION 1.9.0-0~trusty
-
-# Install Docker from Docker Inc. repositories.
-RUN apt-get update && apt-get install -y docker-engine=$DOCKER_VERSION && rm -rf /var/lib/apt/lists/*
-
-ADD wrapdocker /usr/local/bin/wrapdocker
-RUN chmod +x /usr/local/bin/wrapdocker
-VOLUME /var/lib/docker
-
-
-# Make sure that the "jenkins" user from evarga's image is part of the "docker"
-# group. Needed to access the docker daemon's unix socket.
-RUN usermod -a -G docker jenkins
-
-
-# place the jenkins slave startup script into the container
-ADD jenkins-slave-startup.sh /
 CMD ["/jenkins-slave-startup.sh"]
