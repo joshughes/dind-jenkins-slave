@@ -6,14 +6,14 @@
 # Following the best practices outlined in:
 #   http://jonathan.bergknoff.com/journal/building-good-docker-images
 
-FROM docker:1.9.1-dind
+FROM docker:1.9.1
 
-RUN apk update && apk add openssh openjdk7-jre
+RUN apk update && apk add openssh make openjdk7-jre git
 RUN mkdir -p /var/run/sshd &&\
     adduser -s /bin/ash -D jenkins &&\
     echo "jenkins:jenkins" | chpasswd &&\
     ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa &&\
-    echo "export DOCKER_HOST=tcp://localhost:2375" >> /etc/profile
+    ln -s /usr/local/bin/docker /usr/bin/docker
 
 EXPOSE 22
 
