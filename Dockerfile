@@ -8,8 +8,12 @@
 
 FROM docker:1.9.1
 
-RUN apk update && apk add openssh make openjdk7-jre git
-RUN mkdir -p /var/run/sshd &&\
+RUN apk update &&\
+    apk add openssh make openjdk7-jre git groff less python py-pip && \
+    pip install awscli && \
+    apk --purge -v del py-pip && \
+    rm /var/cache/apk/* &&\
+    mkdir -p /var/run/sshd &&\
     adduser -s /bin/ash -D jenkins &&\
     echo "jenkins:jenkins" | chpasswd &&\
     ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa &&\
